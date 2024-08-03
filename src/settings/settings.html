@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Mark as Read</title>
+    <link rel="stylesheet" href="settings.css" />
+    <script type="module" src="settings.ts"></script>
+  </head>
+  <body data-bs-theme="dark" x-data="app" x-init="initPage">
+    <main class="mb-5 container">
+      <header>
+        <h1 class="mt-3 text-center fw-bold">Mark as Read</h1>
+      </header>
+      <section>
+        <h2>Read link CSS</h2>
+        <div class="mt-3">
+          <div>
+            The &lt;a> elements pointing to matching URLs will be given the CSS
+            class
+            <code>.mark-as-read-4e3b3eef-af02-4d4a-979d-a6e44b8d7165</code>.
+            Below you can edit the style applied to this class.
+          </div>
+          <textarea
+            class="css-textarea mt-3"
+            cols="50"
+            rows="6"
+            x-model="cssStyleTemp"
+            @input="onCssStyleChange"></textarea>
+          <div class="mt-3">
+            <span class="d-block fw-bold">Live demo:</span>
+            <a
+              class="mark-as-read-4e3b3eef-af02-4d4a-979d-a6e44b8d7165"
+              href="https://live.staticflickr.com/65535/48915070881_a49978f8bb_b.jpg"
+              target="_blank"
+              >https://test.com</a
+            >
+          </div>
+          <div class="d-flex gap-2">
+            <button class="mt-3 btn btn-info" @click="restoreDefaultCss">
+              Restore default
+            </button>
+            <button
+              class="mt-3 btn btn-info"
+              :disabled="cssBtnsDisabled"
+              @click="discardCssChanges">
+              Discard changes
+            </button>
+            <button
+              class="mt-3 btn btn-info"
+              :disabled="cssBtnsDisabled"
+              @click="saveCss">
+              Save
+            </button>
+          </div>
+        </div>
+      </section>
+      <section class="mt-5">
+        <h2>Custom URL preprocessor</h2>
+        <div class="mt-3">
+          <div>
+            Each URL processed by Mark as Read will be passed to the following
+            JavaScript code, which should return the processed URL. The original
+            URL is accessible through the variable
+            <code>$url</code>. You can use it to ignore hash and parameters in
+            the URL, for example. Warning: the code is <em>eval</em>-ed, do it
+            at your own risk.
+          </div>
+          <textarea
+            class="css-textarea mt-3"
+            cols="50"
+            rows="6"
+            x-model="urlPreprocessorCodeTemp"
+            @input="onUrlPreprocessorChange"></textarea>
+          <div class="mt-3">
+            <span class="d-block fw-bold">Tester:</span>
+            <div class="mt-2 ms-3 test-url-container">
+              <span class="fw-bold">URL to test:</span>
+              <input
+                class="ms-1"
+                type="text"
+                x-model="testUrl"
+                @input="applyUrlPreprocessor" />
+              <span class="fw-bold">Resultant URL:</span>
+              <input
+                :class="(testUrlError ? 'test-url-error' : '') + ' ms-1'"
+                type="text"
+                disabled
+                x-model="testUrlResult" />
+            </div>
+          </div>
+          <div class="d-flex">
+            <div class="d-flex gap-2">
+              <button
+                class="mt-3 btn btn-info"
+                @click="restoreDefaultUrlPreprocessor">
+                Restore default
+              </button>
+              <button
+                class="mt-3 btn btn-info"
+                :disabled="urlPreprocessorBtnsDisabled"
+                @click="discardUrlPreprocessorChanges">
+                Discard changes
+              </button>
+              <button
+                class="mt-3 btn btn-info"
+                :disabled="urlPreprocessorBtnsDisabled"
+                @click="saveUrlPreprocessor">
+                Save
+              </button>
+            </div>
+          </div>
+        </div>
+      </section>
+      <section class="mt-5">
+        <h2>Import / export</h2>
+        <div class="mt-3">
+          <input class="d-none" type="file" accept=".json" x-ref="jsonInput" />
+          <button class="btn btn-info" @click="triggerJsonImportSelection">
+            Import read pages from JSON
+          </button>
+          <div class="mt-3">
+            The JSON should be an array of objects with 2 properties:
+            <ul>
+              <li>
+                <code>url</code>: string – the URL of the page, must be a valid
+                URL
+              </li>
+              <li>
+                <code>datetime</code>: string – a datetime string conforming to
+                the
+                <a
+                  href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date#date_time_string_format"
+                  target="_blank"
+                  rel="noreferrer"
+                  >JS date time string format</a
+                >
+              </li>
+            </ul>
+          </div>
+        </div>
+        <div class="mt-5">
+          <button class="btn btn-info" @click="exportPagesToJson">
+            Export read pages to JSON
+          </button>
+        </div>
+      </section>
+    </main>
+    <div
+      class="toast-container position-fixed bottom-0 start-50 translate-middle p-1">
+      <div
+        class="toast text-bg-danger"
+        role="alert"
+        aria-live="assertive"
+        aria-atomic="true"
+        x-ref="toastError">
+        <div class="toast-body">
+          Could not import file. Check if it conforms to the rules below the
+          button.
+        </div>
+      </div>
+    </div>
+    <div
+      class="toast-container position-fixed bottom-0 start-50 translate-middle p-1">
+      <div
+        class="toast text-bg-success"
+        role="alert"
+        aria-live="assertive"
+        aria-atomic="true"
+        x-ref="toastSuccess">
+        <div class="toast-body">File imported successfully.</div>
+      </div>
+    </div>
+  </body>
+</html>

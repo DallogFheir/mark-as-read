@@ -1,0 +1,15 @@
+.css-textarea {
+  resize: none;
+}
+
+.test-url-container {
+  display: grid;
+  grid-template-columns: 1fr 5fr;
+  grid-template-rows: 1fr 1fr;
+  align-items: center;
+  gap: 0.5em;
+}
+
+.test-url-error {
+  color: #dc3545;
+}
