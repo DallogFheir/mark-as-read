@@ -49,16 +49,6 @@ export class MarkAsReadBackgroundScript {
     }
   }
 
-  #getIconData(iconPath: string): { [key: number]: string } {
-    const sizes = [16, 32];
-
-    const paths = Object.fromEntries(
-      sizes.map((size) => [size, formatMessage(iconPath, String(size))])
-    );
-
-    return paths;
-  }
-
   async #informContentScriptMarkAsRead(tabId: number): Promise<void> {
     if (await this.#isEnabled()) {
       await browser.tabs.sendMessage(tabId, null);
@@ -145,7 +135,7 @@ export class MarkAsReadBackgroundScript {
       tabId: tabId,
     });
     await browser.browserAction.setIcon({
-      path: this.#getIconData(ICON_PATHS.Disabled),
+      path: ICON_PATHS.Disabled,
       tabId: tabId,
     });
   }
@@ -160,7 +150,7 @@ export class MarkAsReadBackgroundScript {
 
     await browser.browserAction.setTitle({ title, tabId: tabId });
     await browser.browserAction.setIcon({
-      path: this.#getIconData(ICON_PATHS.Read),
+      path: ICON_PATHS.Read,
       tabId: tabId,
     });
   }
@@ -171,7 +161,7 @@ export class MarkAsReadBackgroundScript {
       tabId: tabId,
     });
     await browser.browserAction.setIcon({
-      path: this.#getIconData(ICON_PATHS.Unread),
+      path: ICON_PATHS.Unread,
       tabId: tabId,
     });
   }

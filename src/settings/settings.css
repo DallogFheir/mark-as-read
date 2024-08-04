@@ -2,6 +2,10 @@
   resize: none;
 }
 
+.icon {
+  transform: scale(80%);
+}
+
 .test-url-container {
   display: grid;
   grid-template-columns: 1fr 5fr;

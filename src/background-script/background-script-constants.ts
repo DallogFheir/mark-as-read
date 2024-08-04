@@ -12,9 +12,9 @@ export const IS_READ_BUT_NO_MATCH =
   "Message with 'isRead' set to true but no 'match' property.";
 
 export const ICON_PATHS = {
-  Disabled: `icons/${PLACEHOLDER}/disabled.png`,
-  Read: `icons/${PLACEHOLDER}/read.png`,
-  Unread: `icons/${PLACEHOLDER}/unread.png`,
+  Disabled: `icons/disabled.svg`,
+  Read: `icons/read.svg`,
+  Unread: `icons/unread.svg`,
 };
 
 export const PRESS_TO_MARK_AS_READ_BADGE_MESSAGE = "press to mark as read";
