@@ -86,15 +86,14 @@ export class MarkAsReadContentScript {
 
   async #informBackgroundIsCurrentPageRead(): Promise<void> {
     const currentUrl = window.location.href;
+    const readPage = this.#getReadPageFromUrl(currentUrl);
 
-    if (this.#isUrlRead(currentUrl)) {
-      const matchInfo = this.#readPages!.find(({ url }) => url === currentUrl)!;
-
+    if (readPage) {
       await browser.runtime.sendMessage({
         isRead: true,
         match: {
-          url: matchInfo.url,
-          datetime: matchInfo.datetime,
+          url: readPage.url,
+          datetime: readPage.datetime,
         },
       } satisfies MarkAsReadMessage);
     } else {
@@ -108,11 +107,11 @@ export class MarkAsReadContentScript {
     return node.nodeName === ANCHOR_TAG_NAME;
   }
 
-  #isUrlRead(url: string): boolean {
+  #getReadPageFromUrl(url: string): Maybe<ReadPage> {
     this.#checkInitialized();
 
     const processedUrl = this.#urlPreprocessor!(url);
-    return this.#readPages!.find(({ url }) => url === processedUrl) != null;
+    return this.#readPages!.find(({ url }) => url === processedUrl);
   }
 
   async #loadSettings(): Promise<void> {
@@ -253,7 +252,7 @@ export class MarkAsReadContentScript {
         return;
       }
 
-      const arrayToPush = this.#isUrlRead(node.href)
+      const arrayToPush = this.#getReadPageFromUrl(node.href)
         ? anchorNodes.read
         : anchorNodes.unread;
       arrayToPush.push(node);
@@ -282,7 +281,7 @@ export class MarkAsReadContentScript {
     const currentUrl = window.location.href;
     const processedUrl = this.#urlPreprocessor!(currentUrl);
 
-    if (this.#isUrlRead(currentUrl)) {
+    if (this.#getReadPageFromUrl(currentUrl)) {
       this.#readPages = this.#readPages!.filter(
         ({ url }) => url !== currentUrl
       );

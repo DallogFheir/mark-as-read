@@ -24,24 +24,24 @@ import {
 } from "./background-script-constants";
 
 export class MarkAsReadBackgroundScript {
-  #initSettings: () => Promise<void>;
   #onBrowserActionClick: (
     tab: browser.tabs.Tab,
     clickData: Maybe<browser.browserAction.OnClickData>
   ) => Promise<void>;
+  #onExtensionInstalled: () => Promise<void>;
   #onMessage: (
     message: any,
     sender: browser.runtime.MessageSender
   ) => Promise<void>;
 
   constructor() {
-    this.#initSettings = this.#_initSettings.bind(this);
     this.#onBrowserActionClick = this.#_onBrowserActionClick.bind(this);
+    this.#onExtensionInstalled = this.#_onExtensionInstalled.bind(this);
     this.#onMessage = this.#_onMessage.bind(this);
   }
 
   async start(): Promise<void> {
-    browser.runtime.onInstalled.addListener(this.#initSettings);
+    browser.runtime.onInstalled.addListener(this.#onExtensionInstalled);
     browser.browserAction.onClicked.addListener(this.#onBrowserActionClick);
 
     if (await this.#isEnabled()) {
@@ -55,7 +55,7 @@ export class MarkAsReadBackgroundScript {
     }
   }
 
-  async #_initSettings(): Promise<void> {
+  async #initSettings(): Promise<void> {
     await browser.storage.sync.set({
       [STORAGE_KEYS.CssStyle]: DEFAULT_CSS_STYLE,
       [STORAGE_KEYS.IsEnabled]: true,
@@ -123,6 +123,11 @@ export class MarkAsReadBackgroundScript {
         await this.#setBadgeToNotMatched(tab.id);
       }
     }
+  }
+
+  async #_onExtensionInstalled(): Promise<void> {
+    await browser.runtime.openOptionsPage();
+    await this.#initSettings();
   }
 
   #openSettingsPage(): void {

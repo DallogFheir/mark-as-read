@@ -8,6 +8,10 @@
   "name": "Mark as Read",
   "version": "1.0",
   "description": "Mark webpages as read.",
+  "icons": {
+    "48": "icons/disabled.svg",
+    "96": "icons/disabled.svg"
+  },
   "options_page": "src/settings/settings.html",
   "background": {
     "scripts": [

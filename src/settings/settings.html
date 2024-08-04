@@ -7,12 +7,16 @@
     <link rel="stylesheet" href="settings.css" />
     <script type="module" src="settings.ts"></script>
   </head>
-  <body data-bs-theme="dark" x-data="app" x-init="initPage">
+  <body
+    data-bs-theme="dark"
+    x-data="app"
+    x-init="initPage"
+    style="background-color: #222222">
     <main class="mb-5 container">
       <header
         class="mt-3 d-flex justify-content-center align-items-center gap-2">
         <img src="../../public/icons/disabled.svg" />
-        <h1>Mark as Read</h1>
+        <h1 class="fw-bold">Mark as Read</h1>
       </header>
       <section>
         <h2>How to use</h2>
@@ -25,38 +29,45 @@
           <div>
             The extension icon in the browser toolbar tells you the state of the
             extension:
-            <ul>
-              <li>
-                <img class="icon" src="../../public/icons/disabled.svg" /> –
-                extension is disabled
-                <div>
-                  you can enable it by clicking on it while holding the Control
-                  key
-                </div>
-              </li>
-              <li>
-                <img class="icon" src="../../public/icons/read.svg" /> – the
-                current page has been marked as read
-                <div>click on the icon to mark it as unread</div>
-                <div>
-                  click on the icon while holding the Control key to disable the
-                  extension
-                </div>
-              </li>
-              <li>
-                <img class="icon" src="../../public/icons/unread.svg" /> – the
-                current page has NOT been marked as read
-                <div>click on the icon to mark it as read</div>
-                <div>
-                  click on the icon while holding the Control key to disable the
-                  extension
-                </div>
-              </li>
-            </ul>
-            <div>
-              Click on the icon while holding the Shift key to open the settings
-              page.
-            </div>
+            <table class="mt-2 text-center table table-bordered">
+              <thead class="align-middle">
+                <tr>
+                  <th>icon</th>
+                  <td>
+                    <img class="icon" src="../../public/icons/disabled.svg" />
+                  </td>
+                  <td>
+                    <img class="icon" src="../../public/icons/read.svg" />
+                  </td>
+                  <td>
+                    <img class="icon" src="../../public/icons/unread.svg" />
+                  </td>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <th>state</th>
+                  <td>extension is temporarily disabled</td>
+                  <td>current page has been marked as read</td>
+                  <td>current page has NOT been marked as read</td>
+                </tr>
+                <tr>
+                  <th>click on the icon</th>
+                  <td>-</td>
+                  <td>mark the current page as NOT read</td>
+                  <td>mark the current page as read</td>
+                </tr>
+                <tr>
+                  <th><kbd>Ctrl</kbd> + click</th>
+                  <td>enable the extension</td>
+                  <td colspan="2">disable the extension</td>
+                </tr>
+                <tr>
+                  <th><kbd>Shift</kbd> + click</th>
+                  <td colspan="3">open the options page</td>
+                </tr>
+              </tbody>
+            </table>
           </div>
         </div>
       </section>
