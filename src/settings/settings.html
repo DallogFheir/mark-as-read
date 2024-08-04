@@ -9,10 +9,58 @@
   </head>
   <body data-bs-theme="dark" x-data="app" x-init="initPage">
     <main class="mb-5 container">
-      <header>
-        <h1 class="mt-3 text-center fw-bold">Mark as Read</h1>
+      <header
+        class="mt-3 d-flex justify-content-center align-items-center gap-2">
+        <img src="../../public/icons/32/disabled.png" />
+        <h1>Mark as Read</h1>
       </header>
       <section>
+        <h2>How to use</h2>
+        <div class="mt-3">
+          <div>
+            Mark as Read is a simple extension that allows you to mark webpages
+            as read. It will apply CSS style to all links pointing to those
+            webpages. You can customize the CSS and the URL preprocessor below.
+          </div>
+          <div>
+            The extension icon in the browser toolbar tells you the state of the
+            extension:
+            <ul>
+              <li>
+                <img src="../../public/icons/16/disabled.png" /> – extension is
+                disabled
+                <div>
+                  you can enable it by clicking on it while holding the Control
+                  key
+                </div>
+              </li>
+              <li>
+                <img src="../../public/icons/16/read.png" /> – the current page
+                has been marked as read
+                <div>click on the icon to mark it as unread</div>
+                <div>
+                  click on the icon while holding the Control key to disable the
+                  extension
+                </div>
+              </li>
+              <li>
+                <img src="../../public/icons/16/unread.png" /> – the current
+                page has NOT been marked as read
+                <div>click on the icon to mark it as read</div>
+                <div>
+                  click on the icon while holding the Control key to disable the
+                  extension
+                </div>
+              </li>
+            </ul>
+            <div>
+              Click on the icon while holding the Shift key to open the settings
+              page.
+            </div>
+          </div>
+        </div>
+      </section>
+      <section class="mt-4">
         <h2>Read link CSS</h2>
         <div class="mt-3">
           <div>
@@ -41,13 +89,13 @@
               Restore default
             </button>
             <button
-              class="mt-3 btn btn-info"
+              class="mt-3 btn btn-danger"
               :disabled="cssBtnsDisabled"
               @click="discardCssChanges">
               Discard changes
             </button>
             <button
-              class="mt-3 btn btn-info"
+              class="mt-3 btn btn-success"
               :disabled="cssBtnsDisabled"
               @click="saveCss">
               Save
@@ -55,7 +103,7 @@
           </div>
         </div>
       </section>
-      <section class="mt-5">
+      <section class="mt-4">
         <h2>Custom URL preprocessor</h2>
         <div class="mt-3">
           <div>
@@ -97,13 +145,13 @@
                 Restore default
               </button>
               <button
-                class="mt-3 btn btn-info"
+                class="mt-3 btn btn-danger"
                 :disabled="urlPreprocessorBtnsDisabled"
                 @click="discardUrlPreprocessorChanges">
                 Discard changes
               </button>
               <button
-                class="mt-3 btn btn-info"
+                class="mt-3 btn btn-success"
                 :disabled="urlPreprocessorBtnsDisabled"
                 @click="saveUrlPreprocessor">
                 Save
@@ -112,7 +160,7 @@
           </div>
         </div>
       </section>
-      <section class="mt-5">
+      <section class="mt-4">
         <h2>Import / export</h2>
         <div class="mt-3">
           <input class="d-none" type="file" accept=".json" x-ref="jsonInput" />

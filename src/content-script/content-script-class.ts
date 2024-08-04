@@ -3,6 +3,7 @@ import {
   STORAGE_KEYS,
   URL_PREPROCESSOR_ARGUMENT_NAME,
 } from "../common/constants";
+import { MarkAsReadError } from "../common/errors";
 import type {
   MarkAsReadMessage,
   MarkAsReadStorage,
@@ -12,25 +13,35 @@ import type {
 } from "../common/types";
 import { MARK_AS_READ_NOT_INITIALIZED } from "./content-script-constants";
 import type { AnchorNodes } from "./content-script-types";
-import { MarkAsReadError } from "./errors";
 
 const ANCHOR_TAG_NAME = "A";
 
-export class MarkAsRead {
+export class MarkAsReadContentScript {
+  #anchorMutationObserver: Maybe<MutationObserver> = null;
   #cssStyle: Maybe<string> = null;
   #cssStyleElement: Maybe<HTMLStyleElement> = null;
+  #headMutationObserver: Maybe<MutationObserver> = null;
+  #isEnabled: boolean = false;
   #readPages: Maybe<ReadPage[]> = null;
   #urlPreprocessor: Maybe<UrlPreprocessor> = null;
 
+  #onStorageChange: (changes: {
+    [key: string]: browser.storage.StorageChange;
+  }) => void;
+  #toggleCurrentPageIsRead: () => Promise<void>;
+
+  constructor() {
+    this.#onStorageChange = this.#_onStorageChange.bind(this);
+    this.#toggleCurrentPageIsRead = this.#_toggleCurrentPageIsRead.bind(this);
+  }
+
   async start(): Promise<void> {
     await this.#loadSettings();
-    this.#addCssStyleElement();
-    await this.#informBackgroundIsCurrentPageRead();
     this.#registerStorageChangeListener();
-    this.#registerMessageListener();
-    this.#applyCssClassToAnchorNodes();
-    this.#registerAnchorMutationObserver();
-    this.#registerHeadMutationObserver();
+
+    if (this.#isEnabled) {
+      await this.#startContentScript();
+    }
   }
 
   #addCssClassToAnchorNode(anchorNode: HTMLAnchorElement): void {
@@ -73,26 +84,6 @@ export class MarkAsRead {
     }
   }
 
-  #splitAnchorNodes(nodes: Node[]): AnchorNodes {
-    const anchorNodes: AnchorNodes = {
-      read: [],
-      unread: [],
-    };
-
-    nodes.forEach((node) => {
-      if (!this.#isAnchorNode(node)) {
-        return;
-      }
-
-      const arrayToPush = this.#isUrlRead(node.href)
-        ? anchorNodes.read
-        : anchorNodes.unread;
-      arrayToPush.push(node);
-    });
-
-    return anchorNodes;
-  }
-
   async #informBackgroundIsCurrentPageRead(): Promise<void> {
     const currentUrl = window.location.href;
 
@@ -127,15 +118,18 @@ export class MarkAsRead {
   async #loadSettings(): Promise<void> {
     const {
       [STORAGE_KEYS.CssStyle]: cssStyle,
+      [STORAGE_KEYS.IsEnabled]: isEnabled,
       [STORAGE_KEYS.ReadPages]: readPages,
       [STORAGE_KEYS.UrlPreprocessor]: urlPreprocessor,
     } = (await browser.storage.sync.get([
       STORAGE_KEYS.CssStyle,
+      STORAGE_KEYS.IsEnabled,
       STORAGE_KEYS.ReadPages,
       STORAGE_KEYS.UrlPreprocessor,
     ])) as MarkAsReadStorage;
 
     this.#cssStyle = cssStyle;
+    this.#isEnabled = isEnabled;
     this.#readPages = readPages;
     this.#urlPreprocessor = this.#parseUrlPreprocessor(urlPreprocessor);
   }
@@ -156,24 +150,41 @@ export class MarkAsRead {
     }
   }
 
-  #onStorageChange(changes: {
+  async #_onStorageChange(changes: {
     [key: string]: browser.storage.StorageChange;
-  }): void {
+  }): Promise<void> {
     Object.entries(changes).forEach(([key, { newValue }]) => {
       switch (key) {
         case STORAGE_KEYS.CssStyle: {
-          this.#cssStyle = newValue;
-          this.#updateCssStyleElement();
+          if (this.#isEnabled) {
+            this.#cssStyle = newValue;
+            this.#updateCssStyleElement();
+          }
+          break;
+        }
+        case STORAGE_KEYS.IsEnabled: {
+          this.#isEnabled = newValue;
+
+          if (this.#isEnabled) {
+            this.#startContentScript();
+          } else {
+            this.#stopContentScript();
+          }
+
           break;
         }
         case STORAGE_KEYS.ReadPages: {
-          this.#readPages = newValue;
-          this.#applyCssClassWithPreprocessingAll();
+          if (this.#isEnabled) {
+            this.#readPages = newValue;
+            this.#applyCssClassWithPreprocessingAll();
+          }
           break;
         }
         case STORAGE_KEYS.UrlPreprocessor: {
-          this.#urlPreprocessor = this.#parseUrlPreprocessor(newValue);
-          this.#applyCssClassWithPreprocessingAll();
+          if (this.#isEnabled) {
+            this.#urlPreprocessor = this.#parseUrlPreprocessor(newValue);
+            this.#applyCssClassWithPreprocessingAll();
+          }
           break;
         }
       }
@@ -188,41 +199,86 @@ export class MarkAsRead {
   }
 
   #registerAnchorMutationObserver(): void {
-    const anchorMutationObserver = new MutationObserver((mutations) =>
-      this.#onBodyChange(mutations)
-    );
+    if (!this.#anchorMutationObserver) {
+      this.#anchorMutationObserver = new MutationObserver(this.#onBodyChange);
+    }
 
-    anchorMutationObserver.observe(document.body, {
+    this.#anchorMutationObserver.observe(document.body, {
       childList: true,
       subtree: true,
     });
   }
 
   #registerHeadMutationObserver(): void {
-    const headMutationObserver = new MutationObserver((mutations) =>
-      this.#onHeadChildrenChange(mutations)
-    );
+    if (!this.#headMutationObserver) {
+      this.#headMutationObserver = new MutationObserver(
+        this.#onHeadChildrenChange
+      );
+    }
 
-    headMutationObserver.observe(document.head, { childList: true });
+    this.#headMutationObserver.observe(document.head, { childList: true });
   }
 
   #registerMessageListener(): void {
-    browser.runtime.onMessage.addListener(() =>
-      this.#toggleCurrentPageIsRead()
-    );
+    browser.runtime.onMessage.addListener(this.#toggleCurrentPageIsRead);
   }
 
   #registerStorageChangeListener(): void {
-    browser.storage.sync.onChanged.addListener((changes) =>
-      this.#onStorageChange(changes)
-    );
+    browser.storage.sync.onChanged.addListener(this.#onStorageChange);
   }
 
   #removeCssClassFromAnchorNode(anchorNode: HTMLAnchorElement): void {
     anchorNode.classList.remove(MARK_AS_READ_CSS_CLASS);
   }
 
-  async #toggleCurrentPageIsRead(): Promise<void> {
+  #removeCssClassFromAnchorNodes(): void {
+    const allAnchorNodes = document.querySelectorAll("a");
+
+    allAnchorNodes.forEach(this.#removeCssClassFromAnchorNode);
+  }
+
+  #removeCssStyleElement(): void {
+    this.#cssStyleElement?.remove();
+    this.#cssStyleElement = null;
+  }
+
+  #splitAnchorNodes(nodes: Node[]): AnchorNodes {
+    const anchorNodes: AnchorNodes = {
+      read: [],
+      unread: [],
+    };
+
+    nodes.forEach((node) => {
+      if (!this.#isAnchorNode(node)) {
+        return;
+      }
+
+      const arrayToPush = this.#isUrlRead(node.href)
+        ? anchorNodes.read
+        : anchorNodes.unread;
+      arrayToPush.push(node);
+    });
+
+    return anchorNodes;
+  }
+
+  async #startContentScript(): Promise<void> {
+    this.#registerMessageListener();
+    this.#addCssStyleElement();
+    await this.#informBackgroundIsCurrentPageRead();
+    this.#applyCssClassToAnchorNodes();
+    this.#registerAnchorMutationObserver();
+    this.#registerHeadMutationObserver();
+  }
+
+  #stopContentScript(): void {
+    this.#removeCssStyleElement();
+    this.#removeCssClassFromAnchorNodes();
+    this.#unregisterAnchorMutationObserver();
+    this.#unregisterHeadMutationObserver();
+  }
+
+  async #_toggleCurrentPageIsRead(): Promise<void> {
     const currentUrl = window.location.href;
     const processedUrl = this.#urlPreprocessor!(currentUrl);
 
@@ -242,6 +298,14 @@ export class MarkAsRead {
     });
 
     await this.#informBackgroundIsCurrentPageRead();
+  }
+
+  #unregisterAnchorMutationObserver(): void {
+    this.#anchorMutationObserver?.disconnect();
+  }
+
+  #unregisterHeadMutationObserver(): void {
+    this.#headMutationObserver?.disconnect();
   }
 
   #updateCssStyleElement(): void {

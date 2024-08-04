@@ -10,6 +10,7 @@ export const PLACEHOLDER = "{}";
 
 export const STORAGE_KEYS = {
   CssStyle: "cssStyle",
+  IsEnabled: "isEnabled",
   ReadPages: "readPages",
   UrlPreprocessor: "urlPreprocessor",
 } as const;

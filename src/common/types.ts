@@ -6,6 +6,7 @@ export interface MarkAsReadMessage {
 }
 
 export interface MarkAsReadStorage {
+  isEnabled: boolean;
   cssStyle: string;
   readPages: ReadPage[];
   urlPreprocessor: string;

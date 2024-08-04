@@ -1,7 +1,7 @@
-import { MarkAsRead } from "./mark-as-read";
+import { MarkAsReadContentScript } from "./content-script-class";
 
 const main = (): void => {
-  new MarkAsRead().start();
+  new MarkAsReadContentScript().start();
 };
 
 main();
