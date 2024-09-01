@@ -199,7 +199,9 @@ export class MarkAsReadContentScript {
 
   #registerAnchorMutationObserver(): void {
     if (!this.#anchorMutationObserver) {
-      this.#anchorMutationObserver = new MutationObserver(this.#onBodyChange);
+      this.#anchorMutationObserver = new MutationObserver(
+        this.#onBodyChange.bind(this)
+      );
     }
 
     this.#anchorMutationObserver.observe(document.body, {
@@ -211,7 +213,7 @@ export class MarkAsReadContentScript {
   #registerHeadMutationObserver(): void {
     if (!this.#headMutationObserver) {
       this.#headMutationObserver = new MutationObserver(
-        this.#onHeadChildrenChange
+        this.#onHeadChildrenChange.bind(this)
       );
     }
 
