@@ -56,11 +56,24 @@ export class MarkAsReadBackgroundScript {
   }
 
   async #initSettings(): Promise<void> {
+    const {
+      [STORAGE_KEYS.CssStyle]: cssStyle,
+      [STORAGE_KEYS.IsEnabled]: isEnabled,
+      [STORAGE_KEYS.ReadPages]: readPages,
+      [STORAGE_KEYS.UrlPreprocessor]: urlPreprocessor,
+    } = await browser.storage.sync.get([
+      STORAGE_KEYS.CssStyle,
+      STORAGE_KEYS.IsEnabled,
+      STORAGE_KEYS.ReadPages,
+      STORAGE_KEYS.UrlPreprocessor,
+    ]);
+
     await browser.storage.sync.set({
-      [STORAGE_KEYS.CssStyle]: DEFAULT_CSS_STYLE,
-      [STORAGE_KEYS.IsEnabled]: true,
-      [STORAGE_KEYS.ReadPages]: [],
-      [STORAGE_KEYS.UrlPreprocessor]: DEFAULT_URL_PREPROCESSOR,
+      [STORAGE_KEYS.CssStyle]: cssStyle ?? DEFAULT_CSS_STYLE,
+      [STORAGE_KEYS.IsEnabled]: isEnabled ?? true,
+      [STORAGE_KEYS.ReadPages]: readPages ?? [],
+      [STORAGE_KEYS.UrlPreprocessor]:
+        urlPreprocessor ?? DEFAULT_URL_PREPROCESSOR,
     } satisfies MarkAsReadStorage);
 
     this.#startBackgroundScript();
