@@ -20,4 +20,8 @@ They can also be imported back.
 
 ## Changelog
 
-- 1.0 [current]
+- 1.1 [current]
+  - fixed default preprocessor breaking on empty URLs
+  - fixed mutation observer not working
+  - fixed settings resetting on update
+- 1.0
