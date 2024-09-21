@@ -6,7 +6,7 @@
     }
   },
   "name": "Mark as Read",
-  "version": "1.1",
+  "version": "1.2",
   "description": "Mark webpages as read.",
   "icons": {
     "48": "icons/disabled.svg",

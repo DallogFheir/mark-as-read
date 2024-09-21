@@ -20,7 +20,9 @@ They can also be imported back.
 
 ## Changelog
 
-- 1.1 [current]
+- 1.2 [current]
+  - fixed settings page opening on browser update
+- 1.1
   - fixed default preprocessor breaking on empty URLs
   - fixed mutation observer not working
   - fixed settings resetting on update
