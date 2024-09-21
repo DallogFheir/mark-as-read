@@ -28,7 +28,9 @@ export class MarkAsReadBackgroundScript {
     tab: browser.tabs.Tab,
     clickData: Maybe<browser.browserAction.OnClickData>
   ) => Promise<void>;
-  #onExtensionInstalled: () => Promise<void>;
+  #onExtensionInstalled: (
+    details: browser.runtime._OnInstalledDetails
+  ) => Promise<void>;
   #onMessage: (
     message: any,
     sender: browser.runtime.MessageSender
@@ -138,9 +140,13 @@ export class MarkAsReadBackgroundScript {
     }
   }
 
-  async #_onExtensionInstalled(): Promise<void> {
-    await browser.runtime.openOptionsPage();
-    await this.#initSettings();
+  async #_onExtensionInstalled({
+    reason,
+  }: browser.runtime._OnInstalledDetails): Promise<void> {
+    if (reason === "install") {
+      await browser.runtime.openOptionsPage();
+      await this.#initSettings();
+    }
   }
 
   #openSettingsPage(): void {
