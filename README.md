@@ -20,7 +20,9 @@ They can also be imported back.
 
 ## Changelog
 
-- 1.2 [current]
+- 1.3 [current]
+  - added warning about overwrite on import
+- 1.2
   - fixed settings page opening on browser update
 - 1.1
   - fixed default preprocessor breaking on empty URLs
