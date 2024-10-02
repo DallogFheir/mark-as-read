@@ -11,7 +11,10 @@ import type {
   ReadPage,
   UrlPreprocessor,
 } from "../common/types";
-import { MARK_AS_READ_NOT_INITIALIZED } from "./content-script-constants";
+import {
+  MARK_AS_READ_NOT_INITIALIZED,
+  URL_CHANGE_OBSERVER_INTERVAL_MILLIS,
+} from "./content-script-constants";
 import type { AnchorNodes } from "./content-script-types";
 
 const ANCHOR_TAG_NAME = "A";
@@ -22,7 +25,9 @@ export class MarkAsReadContentScript {
   #cssStyleElement: Maybe<HTMLStyleElement> = null;
   #headMutationObserver: Maybe<MutationObserver> = null;
   #isEnabled: boolean = false;
+  #lastKnownUrl: Maybe<string> = null;
   #readPages: Maybe<ReadPage[]> = null;
+  #urlChangeObserverInterval: Maybe<ReturnType<typeof setInterval>> = null;
   #urlPreprocessor: Maybe<UrlPreprocessor> = null;
 
   #onStorageChange: (changes: {
@@ -81,6 +86,16 @@ export class MarkAsReadContentScript {
 
     if (shouldBeInitializedFields.some((field) => !field)) {
       throw new MarkAsReadError(MARK_AS_READ_NOT_INITIALIZED);
+    }
+  }
+
+  async #checkUrlChanged(): Promise<void> {
+    const url = window.location.href;
+
+    if (url !== this.#lastKnownUrl) {
+      this.#lastKnownUrl = url;
+      await this.#informBackgroundIsCurrentPageRead();
+      this.#applyCssClassToAnchorNodes();
     }
   }
 
@@ -228,6 +243,15 @@ export class MarkAsReadContentScript {
     browser.storage.local.onChanged.addListener(this.#onStorageChange);
   }
 
+  #registerUrlChangeObserver(): void {
+    if (!this.#urlChangeObserverInterval) {
+      this.#urlChangeObserverInterval = setInterval(
+        this.#checkUrlChanged.bind(this),
+        URL_CHANGE_OBSERVER_INTERVAL_MILLIS
+      );
+    }
+  }
+
   #removeCssClassFromAnchorNode(anchorNode: HTMLAnchorElement): void {
     anchorNode.classList.remove(MARK_AS_READ_CSS_CLASS);
   }
@@ -270,6 +294,7 @@ export class MarkAsReadContentScript {
     this.#applyCssClassToAnchorNodes();
     this.#registerAnchorMutationObserver();
     this.#registerHeadMutationObserver();
+    this.#registerUrlChangeObserver();
   }
 
   #stopContentScript(): void {
@@ -277,6 +302,7 @@ export class MarkAsReadContentScript {
     this.#removeCssClassFromAnchorNodes();
     this.#unregisterAnchorMutationObserver();
     this.#unregisterHeadMutationObserver();
+    this.#unregisterUrlChangeObserver();
   }
 
   async #_toggleCurrentPageIsRead(): Promise<void> {
@@ -307,6 +333,10 @@ export class MarkAsReadContentScript {
 
   #unregisterHeadMutationObserver(): void {
     this.#headMutationObserver?.disconnect();
+  }
+
+  #unregisterUrlChangeObserver(): void {
+    clearInterval(this.#urlChangeObserverInterval ?? undefined);
   }
 
   #updateCssStyleElement(): void {
