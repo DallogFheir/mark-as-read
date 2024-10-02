@@ -120,7 +120,7 @@ export class MarkAsReadContentScript {
       [STORAGE_KEYS.IsEnabled]: isEnabled,
       [STORAGE_KEYS.ReadPages]: readPages,
       [STORAGE_KEYS.UrlPreprocessor]: urlPreprocessor,
-    } = (await browser.storage.sync.get([
+    } = (await browser.storage.local.get([
       STORAGE_KEYS.CssStyle,
       STORAGE_KEYS.IsEnabled,
       STORAGE_KEYS.ReadPages,
@@ -225,7 +225,7 @@ export class MarkAsReadContentScript {
   }
 
   #registerStorageChangeListener(): void {
-    browser.storage.sync.onChanged.addListener(this.#onStorageChange);
+    browser.storage.local.onChanged.addListener(this.#onStorageChange);
   }
 
   #removeCssClassFromAnchorNode(anchorNode: HTMLAnchorElement): void {
@@ -294,7 +294,7 @@ export class MarkAsReadContentScript {
       });
     }
 
-    await browser.storage.sync.set({
+    await browser.storage.local.set({
       [STORAGE_KEYS.ReadPages]: this.#readPages,
     });
 

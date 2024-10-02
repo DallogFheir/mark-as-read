@@ -22,6 +22,7 @@ They can also be imported back.
 
 - 1.3 [current]
   - added warning about overwrite on import
+  - moved away from synced storage (because of its size limits)
 - 1.2
   - fixed settings page opening on browser update
 - 1.1
