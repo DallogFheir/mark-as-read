@@ -174,8 +174,12 @@
       <section class="mt-4">
         <h2>Import / export</h2>
         <div class="mt-3">
+          <div>
+            <span class="text-danger">Warning!</span>
+            Importing a file will overwrite all read pages!
+          </div>
           <input class="d-none" type="file" accept=".json" x-ref="jsonInput" />
-          <button class="btn btn-info" @click="triggerJsonImportSelection">
+          <button class="mt-3 btn btn-info" @click="triggerJsonImportSelection">
             Import read pages from JSON
           </button>
           <div class="mt-3">

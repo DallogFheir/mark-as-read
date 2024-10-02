@@ -102,7 +102,7 @@ document.addEventListener("alpine:init", () => {
     },
     async exportPagesToJson(): Promise<void> {
       const { [STORAGE_KEYS.ReadPages]: pages } =
-        await browser.storage.sync.get(STORAGE_KEYS.ReadPages);
+        await browser.storage.local.get(STORAGE_KEYS.ReadPages);
       const pagesJson = JSON.stringify(pages);
       this.downloadJsonFile(pagesJson);
     },
@@ -135,7 +135,7 @@ document.addEventListener("alpine:init", () => {
       const {
         [STORAGE_KEYS.CssStyle]: cssStyle,
         [STORAGE_KEYS.UrlPreprocessor]: urlPreprocessor,
-      } = (await browser.storage.sync.get([
+      } = (await browser.storage.local.get([
         STORAGE_KEYS.CssStyle,
         STORAGE_KEYS.UrlPreprocessor,
       ])) as MarkAsReadStorage;
@@ -188,18 +188,18 @@ document.addEventListener("alpine:init", () => {
       this.cssStyle = this.cssStyleTemp;
       this.cssBtnsDisabled = true;
 
-      await browser.storage.sync.set({
+      await browser.storage.local.set({
         [STORAGE_KEYS.CssStyle]: this.cssStyle,
       });
     },
     async saveReadPages(pages: ReadPage[]): Promise<void> {
-      await browser.storage.sync.set({ [STORAGE_KEYS.ReadPages]: pages });
+      await browser.storage.local.set({ [STORAGE_KEYS.ReadPages]: pages });
     },
     async saveUrlPreprocessor(): Promise<void> {
       this.urlPreprocessorCode = this.urlPreprocessorCodeTemp;
       this.urlPreprocessorBtnsDisabled = true;
 
-      await browser.storage.sync.set({
+      await browser.storage.local.set({
         [STORAGE_KEYS.UrlPreprocessor]: this.urlPreprocessorCode,
       });
     },

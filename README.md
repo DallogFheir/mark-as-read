@@ -20,7 +20,11 @@ They can also be imported back.
 
 ## Changelog
 
-- 1.2 [current]
+- 1.3 [current]
+  - added warning about overwrite on import
+  - added URL change observer (based on setInterval because Firefox does not support Navigator API yet)
+  - moved away from synced storage (because of its size limits)
+- 1.2
   - fixed settings page opening on browser update
 - 1.1
   - fixed default preprocessor breaking on empty URLs

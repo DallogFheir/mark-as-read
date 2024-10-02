@@ -63,14 +63,14 @@ export class MarkAsReadBackgroundScript {
       [STORAGE_KEYS.IsEnabled]: isEnabled,
       [STORAGE_KEYS.ReadPages]: readPages,
       [STORAGE_KEYS.UrlPreprocessor]: urlPreprocessor,
-    } = await browser.storage.sync.get([
+    } = await browser.storage.local.get([
       STORAGE_KEYS.CssStyle,
       STORAGE_KEYS.IsEnabled,
       STORAGE_KEYS.ReadPages,
       STORAGE_KEYS.UrlPreprocessor,
     ]);
 
-    await browser.storage.sync.set({
+    await browser.storage.local.set({
       [STORAGE_KEYS.CssStyle]: cssStyle ?? DEFAULT_CSS_STYLE,
       [STORAGE_KEYS.IsEnabled]: isEnabled ?? true,
       [STORAGE_KEYS.ReadPages]: readPages ?? [],
@@ -83,11 +83,44 @@ export class MarkAsReadBackgroundScript {
 
   async #isEnabled(): Promise<boolean> {
     const { [STORAGE_KEYS.IsEnabled]: isEnabled } =
-      (await browser.storage.sync.get([
+      (await browser.storage.local.get([
         STORAGE_KEYS.IsEnabled,
       ])) as MarkAsReadStorage;
 
     return isEnabled;
+  }
+
+  async #migrateToLocalStorage(): Promise<void> {
+    const existingLocalData = await browser.storage.local.get([
+      STORAGE_KEYS.CssStyle,
+      STORAGE_KEYS.IsEnabled,
+      STORAGE_KEYS.ReadPages,
+      STORAGE_KEYS.UrlPreprocessor,
+    ]);
+
+    if (Object.values(existingLocalData).every((value) => value == null)) {
+      const {
+        [STORAGE_KEYS.CssStyle]: cssStyle,
+        [STORAGE_KEYS.IsEnabled]: isEnabled,
+        [STORAGE_KEYS.ReadPages]: readPages,
+        [STORAGE_KEYS.UrlPreprocessor]: urlPreprocessor,
+      } = await browser.storage.sync.get([
+        STORAGE_KEYS.CssStyle,
+        STORAGE_KEYS.IsEnabled,
+        STORAGE_KEYS.ReadPages,
+        STORAGE_KEYS.UrlPreprocessor,
+      ]);
+
+      await browser.storage.local.set({
+        [STORAGE_KEYS.CssStyle]: cssStyle ?? DEFAULT_CSS_STYLE,
+        [STORAGE_KEYS.IsEnabled]: isEnabled ?? true,
+        [STORAGE_KEYS.ReadPages]: readPages ?? [],
+        [STORAGE_KEYS.UrlPreprocessor]:
+          urlPreprocessor ?? DEFAULT_URL_PREPROCESSOR,
+      } satisfies MarkAsReadStorage);
+
+      await browser.storage.sync.clear();
+    }
   }
 
   async #_onBrowserActionClick(
@@ -146,6 +179,8 @@ export class MarkAsReadBackgroundScript {
     if (reason === "install") {
       await browser.runtime.openOptionsPage();
       await this.#initSettings();
+    } else if (reason === "update") {
+      await this.#migrateToLocalStorage();
     }
   }
 
@@ -201,7 +236,7 @@ export class MarkAsReadBackgroundScript {
   async #toggleExtensionEnabledState(tabId: number): Promise<void> {
     const wasEnabled = await this.#isEnabled();
 
-    await browser.storage.sync.set({ [STORAGE_KEYS.IsEnabled]: !wasEnabled });
+    await browser.storage.local.set({ [STORAGE_KEYS.IsEnabled]: !wasEnabled });
 
     if (wasEnabled) {
       await this.#setBadgeToDisabled(tabId);
