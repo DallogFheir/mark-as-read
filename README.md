@@ -1,4 +1,4 @@
-# mark-as-read
+# Mark as Read
 
 <img src="public/icons/disabled.svg" width="15px" /> **Mark as Read** is a simple Firefox extension to mark webpages as read.
 
